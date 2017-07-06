@@ -42,7 +42,7 @@ def filter_name(name, terminating_words):
 # hit_words are indicators for correct prediction.
 # Unique for each row.
 def check_hit_words(row, r_fa):
-    cols = ['Street Address','VILLAGE_NAME','Pincode','Locality','City']
+    cols = ['Street Address','VILLAGE_NAME','Locality','Pincode','City']
     for col in cols[:2]:
         x = cln(row[col])
         if x and x in cln(r_fa):
@@ -62,9 +62,8 @@ def check_hit_words(row, r_fa):
 
     return False, None
 
-def analyze(row, address, show=False):
+def analyze(row, address, classes, show=False):
     global ID_UNIVERSE
-    classes = ['A', 'B', 'C']
     ascii = lambda x: x.encode('utf-8','ignore').decode('ascii','ignore')
     code, resp = ps.graceful_request(address)
     if code == 201:
@@ -82,15 +81,27 @@ def analyze(row, address, show=False):
                     ID_UNIVERSE.add(result["place_id"])
                     print("[{0}] || [{1}] || [{2}]".format(result["place_id"], result["name"], h_stat))
                     return True
+    return False
 
 def recover(rows, terminating_words):
+    classes = ['A', 'B', 'C']
     for idx, row in enumerate(rows):
         ##########
         f_name = filter_name(row['Name'], terminating_words)
-        address = f_name + ', ' + cln(row['State'])
+        address_1 = f_name + ', ' + cln(row['State'])
+        address_2 = f_name + ', ' + cln(row['City'])
         ##########
-        print('# %s :'%idx, row['Name'], '-->', address)
-        analyze(row, address)
+        found = False
+        print('# IDX:', idx)
+        print('A1:', row['Name'], '-->', address_1)
+        print('A2:', row['Name'], '-->', address_2)
+
+        found = analyze(row, address_1, ['A'])                          # ADD_1, CLASS A
+        if not found: found = analyze(row, address_2, ['A'])            # ADD_2, CLASS A
+        if not found: found = analyze(row, address_2, ['A', 'B'])       # ADD_2, CLASS A, B
+        if not found: found = analyze(row, address_1, ['A', 'B'])       # ADD_1, CLASS A, B
+        if not found: found = analyze(row, address_2, ['A', 'B', 'C'])  # ADD_2, CLASS A, B, C
+        if not found: found = analyze(row, address_1, ['A', 'B', 'C'])  # ADD_1, CLASS A, B, C
         print()
 
 # SHOULD BE IN PRIORITY ORDER
@@ -99,7 +110,7 @@ terminating_words = ['HIGHSCHOOL', 'SCHOOL', 'SCH', 'COLLEGE', 'VIDYALAE', 'VIDY
 'MANDIR', 'CONVENT', 'SHALA', 'NIKETAN', 'ACADEMY', 'SHIKSHALAYA', 'PATHSALA', 'VIDYAPITH', ',', '(']
 
 if __name__ == '__main__':
-    file_path = glob.glob('input/*Maharashtra*.csv')[0]
+    file_path = glob.glob('input/*Karnat*.csv')[0]
 
     try:
         ps.update_file_name(os.path.basename(file_path))    # MANDATORY

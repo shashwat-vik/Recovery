@@ -3,7 +3,7 @@
 from hashlib import md5
 import requests, os, json, sys, pickle
 
-API_KEYS = [
+API_KEYS = ['AIzaSyBkqEQ3sdYR_SWHvPYSdTS11Ka9GS1G5t8', #NewOne
         'AIzaSyB-o_BigZi-jvjKqNXiyyTb8GKBriiI06c', #Rohit
         'AIzaSyCgs8C71RqvWoeO69XBXVPQH006i7v4IkM', #Ananth's
         'AIzaSyCcijQW6eCvvt1ToSkjaGA4R22qBdZ0XsI', #Aakash's
@@ -12,7 +12,10 @@ API_KEYS = [
         'AIzaSyAD58vGvx1OdgRq-XdYFZW8cyKhODkg6lc',   #Sisodia
         'AIzaSyDs9N58rJ1n-C7qQ0B1qnhAP8DSzzLd1sU',    #Singh
         'AIzaSyC5-mD5yfBlyy1K7H_HKhCk-05d9kF02_k',  #Akarsh
-        'AIzaSyCq7QLuMkfcm-68JL95Au5x9Vc_0qCp8iU'   #Shardul
+        'AIzaSyCq7QLuMkfcm-68JL95Au5x9Vc_0qCp8iU',   #Shardul
+        'AIzaSyCp4DIN0mzmvQxcq0IOMtu48ZmFwr3qyj8',
+        'AIzaSyDY-x_LfS0DKo4dADRqQRCpo_axRZFTCrc', #Amit's
+        'AIzaSyANGekXBG6b61uGWtMgoBUzDvcZDO8jBAg'  #Amit's
 ]
 key_index = 0
 CACHE = {}
@@ -21,6 +24,7 @@ cache_file = ''
 
 def update_file_name(fname):
     global cache_file
+    if not os.path.exists('cache'): os.mkdir('cache')
     cache_file = 'cache/{0}_cache.dat'.format(fname)
 
 def CACHE_LOAD():
@@ -35,7 +39,7 @@ def CACHE_SAVE():
 def graceful_request(address):
     global API_KEYS, key_index, CACHE
     # CACHE CHECK
-    hid = md5(address.encode()).hexdigest()
+    hid = md5(address.encode('utf-8','ignore')).hexdigest()
     if hid in CACHE:
         data = CACHE[hid]
         return (201, data)
@@ -45,16 +49,13 @@ def graceful_request(address):
         while True:
             resp = requests.get(url+API_KEYS[key_index]).json()
             if resp['status'] == 'OK':
-                CACHE[hid]=resp          # CACHE-UPDATE
+                CACHE[hid]=resp                         # CACHE-UPDATE
                 return (201, resp)
             elif resp['status'] == 'ZERO_RESULTS':
-                CACHE[hid]={"results":[]}
-                return (205, None)
-            elif resp['status'] == 'NOT_FOUND':
+                CACHE[hid]={"results":[]}               # CACHE-UPDATE
                 return (205, None)
             key_index = (key_index+1)%len(API_KEYS)
             chain_count += 1
             if chain_count == len(API_KEYS):
                 print('KEYS EXHAUSTED')
-                raise KeyboardInterrupt
-                return (500, None)          # BEWARE. KEYS EXHAUSTED
+                raise KeyboardInterrupt         # BEWARE. KEYS EXHAUSTED

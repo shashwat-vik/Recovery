@@ -22,13 +22,13 @@ def write_csv(file_path,fields,rows):
             writer.writerow(row)
     print('## FILE WRITTEN')
 
-req_fields = ['City','SCHOOL_CODE','AC_YEAR','Name','Locality','Street Address','VILLAGE_NAME','State','Pincode','Place Id', 'Place Id Filter']
+req_fields = ['City','SCHOOL_CODE','AC_YEAR','Name','Locality','Street Address','VILLAGE_NAME','State','Pincode']
 
 if __name__ == '__main__':
-    file_path = glob.glob('input/*MadhyaPrad*.csv')[0]
-
-    fields, rows = [], []
-    read_csv(file_path, fields, rows)
-    #get_duplicates(rows)
-    #print(len(rows))
-    write_csv(file_path, req_fields, rows)
+    file_paths = glob.glob('input/*Karnat*.csv')
+    for file_path in file_paths:
+        fields, rows = [], []
+        read_csv(file_path, fields, rows)
+        #get_duplicates(rows)
+        #print(len(rows))
+        write_csv(file_path, req_fields, rows)
