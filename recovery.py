@@ -110,7 +110,7 @@ terminating_words = ['HIGHSCHOOL', 'SCHOOL', 'SCH', 'COLLEGE', 'VIDYALAE', 'VIDY
 'MANDIR', 'CONVENT', 'SHALA', 'NIKETAN', 'ACADEMY', 'SHIKSHALAYA', 'PATHSALA', 'VIDYAPITH', ',', '(']
 
 if __name__ == '__main__':
-    file_path = glob.glob('input/*Karnat*.csv')[0]
+    file_path = glob.glob('input/*.csv')[0]
 
     try:
         ps.update_file_name(os.path.basename(file_path))    # MANDATORY
@@ -119,7 +119,7 @@ if __name__ == '__main__':
         ########################################
         fields, rows = ['', '', '', 'h_place_id', 'h_category', 'h_col', 'h_word', 'h_name', 'h_address'], []
         read_csv(file_path, fields, rows)
-        rows = rows[:1000]
+        #rows = rows[:1000]
         recover(rows, terminating_words)
         write_csv('output/__'+os.path.basename(file_path), fields, rows)
         ########################################

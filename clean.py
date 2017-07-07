@@ -1,7 +1,7 @@
 import csv, os, glob
 
 def read_csv(file_path,fields,rows):
-    with open(file_path, 'r') as csvFile:
+    with open(file_path, 'r', encoding='windows-1252') as csvFile:
         reader = csv.DictReader(csvFile, dialect=csv.excel)
         fields.extend(reader.fieldnames)
         rows.extend(reader)
@@ -25,7 +25,7 @@ def write_csv(file_path,fields,rows):
 req_fields = ['City','SCHOOL_CODE','AC_YEAR','Name','Locality','Street Address','VILLAGE_NAME','State','Pincode']
 
 if __name__ == '__main__':
-    file_paths = glob.glob('input/*Karnat*.csv')
+    file_paths = glob.glob('input/*.csv')
     for file_path in file_paths:
         fields, rows = [], []
         read_csv(file_path, fields, rows)
