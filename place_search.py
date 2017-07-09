@@ -1,7 +1,7 @@
 # Python 3.x
 
 from hashlib import md5
-import requests, os, json, sys, pickle
+import requests, os, json, sys, pickle, time
 
 API_KEYS = ['AIzaSyBkqEQ3sdYR_SWHvPYSdTS11Ka9GS1G5t8', #NewOne
         'AIzaSyB-o_BigZi-jvjKqNXiyyTb8GKBriiI06c', #Rohit
@@ -36,6 +36,28 @@ def CACHE_SAVE():
     global CACHE, cache_file
     pickle.dump(CACHE, open(cache_file, 'wb'))
 
+def good_night(sleep_time=120):
+    update_interval = 2
+    t0 = time.time()        # SLEEP TIME COUNT
+    t1 = time.time()        # UPDATE TIME COUNT
+    while True:
+        if time.time() - t1 > update_interval:
+            sys.stdout.write("WAKE UP IN: {0:.2f} min\r".format((sleep_time - (time.time()-t0))/60))
+            sys.stdout.flush()
+            t1 = time.time()
+        if time.time() - t0 > sleep_time:
+            print()
+            break
+
+def hex_clean(x):
+    while True:
+        pos = repr(x).find(r'\x')
+        if pos != -1:
+            x = x[:pos-1]+x[pos:]
+        else:
+            break
+    return x
+
 def graceful_request(address):
     global API_KEYS, key_index, CACHE
     # CACHE CHECK
@@ -46,6 +68,7 @@ def graceful_request(address):
     else:
         url = 'https://maps.googleapis.com/maps/api/place/textsearch/json?query='+address+'&types=establishment&key='
         chain_count = 0
+        cleaned = False
         while True:
             resp = requests.get(url+API_KEYS[key_index]).json()
             if resp['status'] == 'OK':
@@ -54,8 +77,19 @@ def graceful_request(address):
             elif resp['status'] == 'ZERO_RESULTS':
                 CACHE[hid]={"results":[]}               # CACHE-UPDATE
                 return (205, None)
+            elif resp['status'] == 'INVALID_REQUEST':
+                if not cleaned:
+                    url = hex_clean(url)
+                    cleaned = True
+                    continue
+                print(resp)
+                raise KeyboardInterrupt
+
+            print(key_index, '|', chain_count, '|', resp['status'], '|', resp['error_message'])
             key_index = (key_index+1)%len(API_KEYS)
             chain_count += 1
-            if chain_count == len(API_KEYS):
-                print('KEYS EXHAUSTED')
-                raise KeyboardInterrupt         # BEWARE. KEYS EXHAUSTED
+            if chain_count%len(API_KEYS) == 0:
+                print('\n**** KEYS EXHAUSTED *****')
+                print('** SLEEPING FOR 2 HRS **\n')
+                good_night(7200)
+                #raise KeyboardInterrupt         # BEWARE. KEYS EXHAUSTED
